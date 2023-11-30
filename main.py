@@ -8,7 +8,29 @@ from sklearn.cluster import KMeans # Wassim
 from sklearn.metrics.cluster import normalized_mutual_info_score, adjusted_rand_score # Wassim
 from sklearn.manifold import TSNE # library used for tsne - Mohamad
 from sklearn.cluster import KMeans # library used for clustering  Mohamad
+# from umap import UMAP
 
+
+def dim_red_UMAP(mat, p, method): #Joe
+    '''
+    Perform dimensionality reduction
+
+    Input:
+    -----
+        mat : NxM list 
+        p : number of dimensions to keep 
+    Output:
+    ------
+        red_mat : NxP list such that p<<m
+    '''
+    if method == 'umap':
+        umap_model = UMAP(n_components=p)
+        red_mat = umap_model.fit_transform(mat)
+    else:
+        # Add other dimensionality reduction methods here if needed
+        red_mat = mat[:, :p]
+        
+    return red_mat
 
 def dim_red_tsne(mat, p):  # Mohamad
     '''
@@ -119,3 +141,18 @@ nmi_score = normalized_mutual_info_score(pred,labels)
 ari_score = adjusted_rand_score(pred,labels)
 
 print(f'By ACP method: NMI: {nmi_score:.2f} \nARI: {ari_score:.2f}')
+
+
+#UMAP Joe
+# perform dimentionality reduction
+red_emb = dim_red_UMAP(embeddings, 20, method = 'UMAP')
+
+# perform clustering
+pred = clust(red_emb, k)
+
+# evaluate clustering results
+nmi_score = normalized_mutual_info_score(pred,labels)
+ari_score = adjusted_rand_score(pred,labels)
+
+print(f'By UMAP Method : NMI: {nmi_score:.2f} \nARI: {ari_score:.2f}')
+
