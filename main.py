@@ -2,13 +2,15 @@ from sklearn.datasets import fetch_20newsgroups
 from sklearn.metrics.cluster import normalized_mutual_info_score, adjusted_rand_score
 from sentence_transformers import SentenceTransformer
 import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer # Wassim
+from sklearn.decomposition import PCA # Wassim
+from sklearn.cluster import KMeans # Wassim
+from sklearn.metrics.cluster import normalized_mutual_info_score, adjusted_rand_score # Wassim
+from sklearn.manifold import TSNE # library used for tsne - Mohamad
+from sklearn.cluster import KMeans # library used for clustering  Mohamad
 
-from sklearn.manifold import TSNE # library used for tsne
 
-from sklearn.cluster import KMeans # library used for clustering 
-
-
-def dim_red(mat, p):
+def dim_red_tsne(mat, p):  # Mohamad
     '''
     Perform dimensionality reduction using t-SNE
 
@@ -28,6 +30,31 @@ def dim_red(mat, p):
     
     # Fit and transform the data to the lower-dimensional space
     red_mat = tsne.fit_transform(mat_np)
+    
+    return red_mat
+
+def dim_red_acp(mat, p):  # Wassim
+    '''
+    Perform dimensionality reduction
+
+    Input:
+    -----
+        mat : NxM list 
+        p : number of dimensions to keep 
+    Output:
+    ------
+        red_mat : NxP list such that p<<m
+    '''
+    
+    
+    pca = PCA(n_components=p)
+    
+    # Appliquer l'ACP et réduire la dimensionnalité
+    red_mat = pca.fit_transform(mat)
+    
+    
+    
+   # red_mat = mat[:,:p]
     
     return red_mat
 
@@ -66,8 +93,9 @@ k = len(set(labels))
 model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
 embeddings = model.encode(corpus)
 
+# TSNE - Mohamad
 # perform dimentionality reduction
-red_emb = dim_red(embeddings, 3)
+red_emb = dim_red_tsne(embeddings, 3)
 
 # perform clustering
 pred = clust(red_emb, k)
@@ -76,4 +104,18 @@ pred = clust(red_emb, k)
 nmi_score = normalized_mutual_info_score(pred,labels)
 ari_score = adjusted_rand_score(pred,labels)
 
-print(f'NMI: {nmi_score:.2f} \nARI: {ari_score:.2f}')
+print(f'By TSNE method: NMI: {nmi_score:.2f} \nARI: {ari_score:.2f}')
+
+
+# ACP - Wassim
+# perform dimentionality reduction
+red_emb = dim_red_acp(embeddings, 20)
+
+# perform clustering
+pred = clust(red_emb, k)
+
+# evaluate clustering results
+nmi_score = normalized_mutual_info_score(pred,labels)
+ari_score = adjusted_rand_score(pred,labels)
+
+print(f'By ACP method: NMI: {nmi_score:.2f} \nARI: {ari_score:.2f}')
