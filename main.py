@@ -1,31 +1,15 @@
-from sklearn.datasets import fetch_20newsgroups
 from sklearn.metrics.cluster import normalized_mutual_info_score, adjusted_rand_score
-from sentence_transformers import SentenceTransformer
 import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer # Wassim
 from sklearn.decomposition import PCA # Wassim
 from sklearn.cluster import KMeans # Wassim
 from sklearn.metrics.cluster import normalized_mutual_info_score, adjusted_rand_score # Wassim
 from sklearn.manifold import TSNE # library used for tsne - Mohamad
 from sklearn.cluster import KMeans # library used for clustering  Mohamad
-# from umap import UMAP
-#from sklearn.decomposition import NMF
-from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 from sklearn.model_selection import KFold
+import pickle
 
 def dim_red_UMAP(mat, p, method): #Joe
-    '''
-    Perform dimensionality reduction
-
-    Input:
-    -----
-        mat : NxM list 
-        p : number of dimensions to keep 
-    Output:
-    ------
-        red_mat : NxP list such that p<<m
-    '''
     if method == 'umap':
         umap_model = UMAP(n_components=p)
         red_mat = umap_model.fit_transform(mat)
@@ -36,17 +20,7 @@ def dim_red_UMAP(mat, p, method): #Joe
     return red_mat
 
 def dim_red_tsne(mat, p):  # Mohamad
-    '''
-    Perform dimensionality reduction using t-SNE
 
-    Input:
-    -----
-        mat : NxM list or array-like 
-        p : number of dimensions to keep 
-    Output:
-    ------
-        red_mat : NxP array such that p<<m
-    '''
     # Convert the input list to a NumPy array if it's not already an array
     mat_np = mat if isinstance(mat, np.ndarray) else np.array(mat)
     
@@ -58,27 +32,10 @@ def dim_red_tsne(mat, p):  # Mohamad
     
     return red_mat
 
-def dim_red_acp(mat, p):  # Wassim
-    '''
-    Perform dimensionality reduction
-
-    Input:
-    -----
-        mat : NxM list 
-        p : number of dimensions to keep 
-    Output:
-    ------
-        red_mat : NxP list such that p<<m
-    '''
-    
-    
+def dim_red_acp(mat, p):  # Wassim      
     pca = PCA(n_components=p)
-    
     # Appliquer l'ACP et réduire la dimensionnalité
     red_mat = pca.fit_transform(mat)
-    
-    
-    
    # red_mat = mat[:,:p]
     
     return red_mat
@@ -123,17 +80,6 @@ def dim_red_nmf(mat, p):  # Exemple d'une autre méthode de réduction de dimens
     return red_mat
 
 def clust(mat, k):
-    '''
-    Perform clustering using KMeans
-
-    Input:
-    -----
-        mat : input list or array-like
-        k : number of clusters
-    Output:
-    ------
-        pred : list of predicted labels
-    '''
     # Convert the input list to a NumPy array if it's not already an array
     mat_np = mat if isinstance(mat, np.ndarray) else np.array(mat)
     
@@ -145,45 +91,30 @@ def clust(mat, k):
     
     return pred.tolist()
 
+with open('ng20_labels.pkl', 'rb') as f:
+    labels = pickle.load(f)
 
-# import data
-ng20 = fetch_20newsgroups(subset='test')
-corpus = ng20.data[:2000]
-labels = ng20.target[:2000]
 k = len(set(labels))
 
-# embedding
-#model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
-#embeddings = model.encode(corpus)
+# # Charger les données
+# ng20 = fetch_20newsgroups(subset='test')
+# corpus = ng20.data[:2000]
+# labels = ng20.target[:2000]
 
+# # Embeddings
+# model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
+# embeddings = model.encode(corpus)
 
-    
-    
-# TSNE - Mohamad
-# perform dimentionality reduction
-#red_emb = dim_red_tsne(embeddings, 3)
+with open('ng20_embeddings.pkl', 'rb') as f:
+    embeddings = pickle.load(f)
 
-
-
-
-# Charger les données
-ng20 = fetch_20newsgroups(subset='test')
-corpus = ng20.data[:2000]
-labels = ng20.target[:2000]
-
-# Embeddings
-model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
-embeddings = model.encode(corpus)
-
-# Définir le nombre de clusters
-k = len(set(labels))
 
 # Initialiser la variable models_to_test avec une liste vide
 models_to_test = []
 
 # Demander à l'utilisateur de saisir les modèles à tester jusqu'à ce qu'une valeur valide soit fournie
 while not models_to_test:
-    models_to_test = input("Enter models to test (comma-separated): ").split(',')
+    models_to_test = input("Enter model to test (example: UMAP OR ACP OR tsne): ").split(',')
 
     # Vérifier si les modèles saisis sont valides
     for model_name in models_to_test:
@@ -197,6 +128,10 @@ num_folds = int(input("Enter the number of folds for cross-validation: "))
 
 # Utiliser KFold pour obtenir les indices d'entraînement et de test
 kf = KFold(n_splits=num_folds, shuffle=True, random_state=42)
+
+# ACP - Wassim
+# perform dimentionality reduction
+red_emb = dim_red_acp(embeddings, 20)
 
 # Créer une unique figure avec une grille plus grande
 fig, axs = plt.subplots(len(models_to_test), num_folds * 3, figsize=(15 * num_folds, 5 * len(models_to_test)))
@@ -256,3 +191,4 @@ print("Nombre total de modèles :", len(models_to_test))
 plt.tight_layout()
 plt.show()
 
+print(f'By UMAP Method : NMI: {nmi_score:.2f} \nARI: {ari_score:.2f}')
