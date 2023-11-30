@@ -1,1 +1,79 @@
+from sklearn.datasets import fetch_20newsgroups
+from sklearn.metrics.cluster import normalized_mutual_info_score, adjusted_rand_score
+from sentence_transformers import SentenceTransformer
+import numpy as np
 
+from sklearn.manifold import TSNE # library used for tsne
+
+from sklearn.cluster import KMeans # library used for clustering 
+
+
+def dim_red(mat, p):
+    '''
+    Perform dimensionality reduction using t-SNE
+
+    Input:
+    -----
+        mat : NxM list or array-like 
+        p : number of dimensions to keep 
+    Output:
+    ------
+        red_mat : NxP array such that p<<m
+    '''
+    # Convert the input list to a NumPy array if it's not already an array
+    mat_np = mat if isinstance(mat, np.ndarray) else np.array(mat)
+    
+    # Initialize t-SNE model with desired number of components
+    tsne = TSNE(n_components=p)
+    
+    # Fit and transform the data to the lower-dimensional space
+    red_mat = tsne.fit_transform(mat_np)
+    
+    return red_mat
+
+
+def clust(mat, k):
+    '''
+    Perform clustering using KMeans
+
+    Input:
+    -----
+        mat : input list or array-like
+        k : number of clusters
+    Output:
+    ------
+        pred : list of predicted labels
+    '''
+    # Convert the input list to a NumPy array if it's not already an array
+    mat_np = mat if isinstance(mat, np.ndarray) else np.array(mat)
+    
+    # Initialize KMeans model with the desired number of clusters
+    kmeans = KMeans(n_clusters=k)
+    
+    # Fit KMeans to the data and predict cluster labels
+    pred = kmeans.fit_predict(mat_np)
+    
+    return pred.tolist()
+
+
+# import data
+ng20 = fetch_20newsgroups(subset='test')
+corpus = ng20.data[:2000]
+labels = ng20.target[:2000]
+k = len(set(labels))
+
+# embedding
+model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
+embeddings = model.encode(corpus)
+
+# perform dimentionality reduction
+red_emb = dim_red(embeddings, 3)
+
+# perform clustering
+pred = clust(red_emb, k)
+
+# evaluate clustering results
+nmi_score = normalized_mutual_info_score(pred,labels)
+ari_score = adjusted_rand_score(pred,labels)
+
+print(f'NMI: {nmi_score:.2f} \nARI: {ari_score:.2f}')
