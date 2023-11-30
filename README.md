@@ -39,15 +39,15 @@ https://github.com/MHTfaily/TP_final_OUNI_HOURANY_TFAILY.git
 
 -Pull our Docker image
 
-docker pull johurany/johurany/tp_final_ouni_hourany_tfaily:v1
+- docker pull johurany/johurany/tp_final_ouni_hourany_tfaily:v1
 
 -After the pull is complete, you can verify that the image is now available on your local machine
 
-docker images
+- docker images
 
 -Run a docker container on the image you've just pulled
 
-docker run johurany/johurany/tp_final_ouni_hourany_tfaily:v1
+- docker run johurany/johurany/tp_final_ouni_hourany_tfaily:v1
 
 ## Github (Type the following commands in git bash)
 
@@ -57,7 +57,7 @@ After cloning the repo you will have all the files necessary to run the program.
 
 -Run main.py using a cmd
 
-python run main.py
+- python run main.py
 
 OR open it in a nootebook
 
